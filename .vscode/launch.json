@@ -2,10 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch main.go",
+            "name": "Launch Web Chat",
             "type": "go",
             "request": "launch",
-            "program": "${workspaceFolder}/main.go",
+            "mode": "auto",
+            "program": "${workspaceFolder}", 
             "console": "integratedTerminal"
         }
     ]

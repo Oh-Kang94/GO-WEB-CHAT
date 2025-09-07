@@ -38,9 +38,12 @@ func main() {
 		http.Redirect(w, r, "/login", http.StatusFound)
 	})
 
+	router.GET("/auth/:action/:provider", loginHandler)
+
 	n := negroni.Classic()
 	store := cookiestore.New([]byte(sessionSecret))
 	n.Use(sessions.Sessions(sessionKey, store))
+	n.Use(LoginRequired("/login", "/auth"))
 	n.UseHandler(router)
 
 	n.Run(":3000")
