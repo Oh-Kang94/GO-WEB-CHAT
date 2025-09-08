@@ -71,6 +71,9 @@ func main() {
 	// MongoDB = Room 생성
 	router.POST("/rooms", CreateRoom)
 
+	// MongoDB = Msg 조회
+	router.GET("/rooms/:id/messages", RetriveMessages)
+
 	n := negroni.Classic()
 	store := cookiestore.New([]byte(sessionSecret))
 	n.Use(sessions.Sessions(sessionKey, store))
