@@ -1,16 +1,24 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"time"
 
 	sessions "github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
 	"github.com/julienschmidt/httprouter"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var renderer *render.Render
+var (
+	renderer *render.Render
+	client   *mongo.Client
+)
 
 const (
 	sessionKey    = "GO-WEB-CHAT"
@@ -19,6 +27,24 @@ const (
 
 func init() {
 	renderer = render.New()
+	log.Println("MongoDB 연결 시작")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// MongoDB 클라이언트 생성
+	var err error
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://root:rootpw@localhost:27017/admin"))
+	if err != nil {
+		log.Fatalf("MongoDB 연결 실패: %v", err)
+	}
+
+	// 연결 확인
+	if err = client.Ping(ctx, nil); err != nil {
+		log.Fatalf("MongoDB ping 실패: %v", err)
+	}
+
+	log.Println("MongoDB 연결 성공")
 }
 
 func main() {
