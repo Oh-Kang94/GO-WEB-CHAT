@@ -8,6 +8,7 @@ import (
 
 	sessions "github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
+	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
@@ -23,6 +24,15 @@ var (
 const (
 	sessionKey    = "GO-WEB-CHAT"
 	sessionSecret = "GO-WEB-CHAT_SECRET"
+)
+
+const socketBufferSize = 1024
+
+var (
+	upgrader = &websocket.Upgrader{
+		ReadBufferSize:  socketBufferSize,
+		WriteBufferSize: socketBufferSize,
+	}
 )
 
 func init() {
@@ -73,6 +83,17 @@ func main() {
 
 	// MongoDB = Msg 조회
 	router.GET("/rooms/:id/messages", RetriveMessages)
+
+	// Socket 라우터 생성
+	router.GET("/ws/:room_id", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		socket, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Fatal("ServeHTTP: ", err)
+			return
+		}
+
+		newCleint(socket, p.ByName("room_id"), GetCurrentUser(r))
+	})
 
 	n := negroni.Classic()
 	store := cookiestore.New([]byte(sessionSecret))
