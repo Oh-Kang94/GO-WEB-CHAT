@@ -66,6 +66,11 @@ func main() {
 
 	router.GET("/auth/:action/:provider", loginHandler)
 
+	// MongoDB = Room 조회
+	router.GET("/rooms", RetrieveRooms)
+	// MongoDB = Room 생성
+	router.POST("/rooms", CreateRoom)
+
 	n := negroni.Classic()
 	store := cookiestore.New([]byte(sessionSecret))
 	n.Use(sessions.Sessions(sessionKey, store))
