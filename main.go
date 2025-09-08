@@ -84,6 +84,7 @@ func main() {
 	// MongoDB = Msg 조회
 	router.GET("/rooms/:id/messages", RetriveMessages)
 
+	// ISSUE: #1 tmpl과 직접 연결이 안된다. 나중에 해결해야함
 	// Socket 라우터 생성
 	router.GET("/ws/:room_id", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		socket, err := upgrader.Upgrade(w, r, nil)
