@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -52,9 +53,56 @@ func (c *Client) Close() {
 }
 
 func (c *Client) readLoop() {
-	panic("unimplemented")
+	// 메시지 수신 대기
+	for {
+		m, err := c.read()
+		if err != nil {
+			// 오류 생성시 수신 루프 종료
+			log.Println("Read Msg Err: ", err)
+			break
+		}
+		m.CreateMsg()
+		broadcast(m)
+
+	}
+
+	c.Close()
+}
+func (c *Client) writeLoop() {
+	// 클라이언트 수신대기
+
+	for msg := range c.send {
+		if c.roomId == msg.RoomID.Hex() {
+			c.write(msg)
+		}
+	}
 }
 
-func (c *Client) writeLoop() {
-	panic("unimplemented")
+// 모든 클라이언트의 Send 채널에 전달
+func broadcast(m *Message) {
+	for _, client := range clients {
+		client.send <- m
+	}
+}
+
+func (c *Client) read() (*Message, error) {
+	var msg *Message
+	// WebSocket Conn에 json전달되면 Msg타입으로 메시지 읽음
+	if err := c.conn.ReadJSON(&msg); err != nil {
+		return nil, err
+	}
+
+	msg.CreatedAt = time.Now()
+
+	msg.User = c.user
+
+	log.Println("Read From WebSocket : ", msg)
+
+	return msg, nil
+}
+
+func (c *Client) write(m *Message) error {
+	log.Println("Write to WebSocket: ", m)
+
+	return c.conn.WriteJSON(m)
 }
